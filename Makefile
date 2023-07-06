@@ -29,6 +29,9 @@ httpd-stop:
 fmt:
 	gofmt -w $(GOFMT_FILES)
 
+fmtcheck:
+	@sh -c "'./scripts/gofmtcheck.sh'"
+
 vet:
 	@echo "go vet ."
 	@go vet $$(go list ./...) ; if [ $$? -eq 1 ]; then \
