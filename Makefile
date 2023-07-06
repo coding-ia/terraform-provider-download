@@ -30,7 +30,7 @@ fmt:
 	gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
-	@sh -c "'./scripts/gofmtcheck.sh'"
+	@bash scripts/gofmtcheck.sh
 
 vet:
 	@echo "go vet ."
