@@ -105,6 +105,11 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 		return
 	}
 
+	if data.Url.ValueString() == "" {
+		response.Diagnostics.AddError("Download file error", "URL cannot be empty")
+		return
+	}
+
 	err := downloadFile(data.OutputFile.ValueString(), data.Url.ValueString())
 	if err != nil {
 		response.Diagnostics.AddError("Download file error", err.Error())

@@ -30,6 +30,46 @@ data "download_file" "test" {
 	})
 }
 
+func TestAccDownloadDataSourceDownloadFile_NoOutputFile(t *testing.T) {
+	expectedError, _ := regexp.Compile(".*open : no such file or directory.*")
+	config := `
+data "download_file" "test" {
+  url           = "http://localhost:8080/file.dat"
+  output_file   = ""
+}
+`
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() {},
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: expectedError,
+			},
+		},
+	})
+}
+
+func TestAccDownloadDataSourceDownloadFile_EmptyUrl(t *testing.T) {
+	expectedError, _ := regexp.Compile(".*URL cannot be empty.*")
+	config := `
+data "download_file" "test" {
+  url           = ""
+  output_file   = ""
+}
+`
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() {},
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: expectedError,
+			},
+		},
+	})
+}
+
 func TestAccDownloadDataSourceDownloadFile_Verify(t *testing.T) {
 	config := `
 data "download_file" "test" {
