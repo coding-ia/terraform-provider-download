@@ -1,5 +1,7 @@
 # download Terraform provider
 
+![Build Status](https://github.com/coding-ia/terraform-provider-download/actions/workflows/build.yml/badge.svg)
+
 This provider was developed to provide the ability to download binary files and to use those files for other resources.
 
 ## Build provider
