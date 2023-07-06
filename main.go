@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"log"
-	"terraform-provider-download/internal/provider"
 
+	"github.com/coding-ia/terraform-provider-download/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 
@@ -30,7 +30,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/hashicorp/kubectl",
+		Address: "github.com/coding-ia/download",
 		Debug:   debug,
 	}
 

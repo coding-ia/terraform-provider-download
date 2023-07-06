@@ -1,4 +1,4 @@
-module terraform-provider-download
+module github.com/coding-ia/terraform-provider-download
 
 go 1.20
 
