@@ -10,13 +10,11 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-    env:
-      GO111MODULE: on
     steps:
       - uses: actions/checkout@v3
 
       - name: Export
-        run: echo ${{ secrets.GPG_PRIVATE_KEY }} > gpg.key
+        run: echo "${{ secrets.GPG_PRIVATE_KEY }}" > gpg.key
 
       - name: Sleep
         run: sleep 10
