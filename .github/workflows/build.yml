@@ -13,7 +13,7 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up GO 1.23.x
         uses: actions/setup-go@v5
@@ -31,7 +31,7 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up GO
         uses: actions/setup-go@v5
@@ -49,7 +49,7 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up GO 1.23.x
         uses: actions/setup-go@v5
@@ -73,7 +73,7 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up GO 1.23.x
         uses: actions/setup-go@v5
@@ -91,7 +91,7 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up GO 1.23.x
         uses: actions/setup-go@v5
