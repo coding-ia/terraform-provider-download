@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -148,7 +149,7 @@ func downloadFile(filepath string, url string, response *datasource.ReadResponse
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			response.Diagnostics.AddError("Download file error", err.Error())
+			log.Printf("error closing response body: %s", err)
 			return
 		}
 	}(resp.Body)
@@ -163,12 +164,12 @@ func downloadFile(filepath string, url string, response *datasource.ReadResponse
 		response.Diagnostics.AddError("Download file error", err.Error())
 		return false
 	}
-	defer func(out *os.File) {
+	defer func() {
 		err := out.Close()
 		if err != nil {
-			response.Diagnostics.AddError("Download file error", err.Error())
+			log.Printf("error closing file output: %s", err)
 		}
-	}(out)
+	}()
 
 	_, err = io.Copy(out, resp.Body)
 	return true
@@ -183,21 +184,21 @@ func genFileShas(filename string, data *DownloadFileDataSourceModel) error {
 	h := sha1.New()
 	h.Write(content)
 	sha1Hash := hex.EncodeToString(h.Sum(nil))
+	data.SHA = types.StringValue(sha1Hash)
 
 	h256 := sha256.New()
 	h256.Write(content)
 	shaSum := h256.Sum(nil)
 	sha256Hash := hex.EncodeToString(h256.Sum(nil))
 	sha256base64 := base64.StdEncoding.EncodeToString(shaSum[:])
+	data.SHA256 = types.StringValue(sha256Hash)
+	data.Base64SHA256 = types.StringValue(sha256base64)
 
 	md5Hash := md5.New()
 	md5Hash.Write(content)
 	md5Sum := hex.EncodeToString(md5Hash.Sum(nil))
-
-	data.SHA = types.StringValue(sha1Hash)
-	data.SHA256 = types.StringValue(sha256Hash)
-	data.Base64SHA256 = types.StringValue(sha256base64)
 	data.MD5 = types.StringValue(md5Sum)
+	
 	data.Id = types.StringValue(sha1Hash)
 
 	return nil
