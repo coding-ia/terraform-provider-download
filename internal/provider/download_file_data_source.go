@@ -198,7 +198,7 @@ func genFileShas(filename string, data *DownloadFileDataSourceModel) error {
 	md5Hash.Write(content)
 	md5Sum := hex.EncodeToString(md5Hash.Sum(nil))
 	data.MD5 = types.StringValue(md5Sum)
-	
+
 	data.Id = types.StringValue(sha1Hash)
 
 	return nil

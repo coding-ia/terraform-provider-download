@@ -3,12 +3,14 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var _ provider.Provider = &DownloadProvider{}
+var _ provider.ProviderWithFunctions = &DownloadProvider{}
 
 type DownloadProvider struct {
 	version string
@@ -31,6 +33,12 @@ func (d *DownloadProvider) Configure(ctx context.Context, request provider.Confi
 func (d *DownloadProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewDownloadFileDataSource,
+	}
+}
+
+func (d *DownloadProvider) Functions(ctx context.Context) []func() function.Function {
+	return []func() function.Function{
+		NewDownloadFileFunction,
 	}
 }
 
