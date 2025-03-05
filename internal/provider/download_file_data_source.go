@@ -111,8 +111,9 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 		return
 	}
 
-	downloaded := downloadFile(data.OutputFile.ValueString(), data.Url.ValueString(), response)
-	if !downloaded {
+	err := downloadFile(data.OutputFile.ValueString(), data.Url.ValueString())
+	if err != nil {
+		response.Diagnostics.AddError("Download file error", err.Error())
 		return
 	}
 
@@ -139,11 +140,10 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 	response.Diagnostics.Append(response.State.Set(ctx, &data)...)
 }
 
-func downloadFile(filepath string, url string, response *datasource.ReadResponse) bool {
+func downloadFile(filepath string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
-		response.Diagnostics.AddError("Download file error", err.Error())
-		return false
+		return err
 	}
 
 	defer func(Body io.ReadCloser) {
@@ -155,14 +155,12 @@ func downloadFile(filepath string, url string, response *datasource.ReadResponse
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		response.Diagnostics.AddError("Download file error", fmt.Errorf("bad status: %s", resp.Status).Error())
-		return false
+		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
 	out, err := os.Create(filepath)
 	if err != nil {
-		response.Diagnostics.AddError("Download file error", err.Error())
-		return false
+		return err
 	}
 	defer func() {
 		err := out.Close()
@@ -172,7 +170,11 @@ func downloadFile(filepath string, url string, response *datasource.ReadResponse
 	}()
 
 	_, err = io.Copy(out, resp.Body)
-	return true
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func genFileShas(filename string, data *DownloadFileDataSourceModel) error {

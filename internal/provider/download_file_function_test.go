@@ -5,10 +5,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"os"
 	"testing"
 )
 
 func TestAccDownloadFileFunction_Simple(t *testing.T) {
+	_ = os.Remove("file.dat") // remove existing test file
+
 	config := `
 output "test" {
   value = provider::download::file("http://localhost:8080/file.dat", "file.dat")

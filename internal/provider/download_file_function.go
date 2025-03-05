@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 var _ function.Function = &DownloadFileFunction{}
@@ -45,46 +46,59 @@ func (d *DownloadFileFunction) Definition(ctx context.Context, request function.
 func (d *DownloadFileFunction) Run(ctx context.Context, request function.RunRequest, response *function.RunResponse) {
 	var url string
 	var filename string
+	skipDownload := false
 
 	response.Error = function.ConcatFuncErrors(response.Error, request.Arguments.Get(ctx, &url, &filename))
 
-	err := downloadFileFunc(filename, url)
-	if err != nil {
-		response.Error = function.NewFuncError(fmt.Sprintf("error downloading file: %v", err))
+	info, _ := os.Stat(filename)
+	if info != nil {
+		_, contentLength, err := getRemoteFileMetadata(url)
+		if err != nil {
+			response.Error = function.NewFuncError(fmt.Sprintf("error getting remote metadata: %v", err))
+		}
+
+		if info.Size() == contentLength {
+			skipDownload = true
+		}
+	}
+
+	if !skipDownload {
+		err := downloadFile(filename, url)
+		if err != nil {
+			response.Error = function.NewFuncError(fmt.Sprintf("error downloading file: %v", err))
+			return
+		}
 	}
 
 	response.Error = function.ConcatFuncErrors(response.Error, response.Result.Set(ctx, filename))
 }
 
-func downloadFileFunc(filepath string, url string) error {
-	resp, err := http.Get(url)
+func getRemoteFileMetadata(url string) (etag string, contentLength int64, err error) {
+	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
-		return err
+		return "", 0, err
 	}
 
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", 0, err
+	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
 			log.Printf("error closing response body: %s", err)
-			return
 		}
 	}(resp.Body)
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
-	}
+	etag = resp.Header.Get("ETag")
 
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := out.Close()
+	contentLengthStr := resp.Header.Get("Content-Length")
+	if contentLengthStr != "" {
+		contentLength, err = strconv.ParseInt(contentLengthStr, 10, 64)
 		if err != nil {
-			log.Printf("error closing file output: %s", err)
+			return "", 0, err
 		}
-	}()
+	}
 
-	_, err = io.Copy(out, resp.Body)
-	return nil
+	return etag, contentLength, nil
 }
