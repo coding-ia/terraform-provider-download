@@ -24,8 +24,6 @@ jobs:
       GO111MODULE: on
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: hashicorp/setup-terraform@v3
 
       - name: Run unit tests
         run: make test
@@ -34,15 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
+      TF_ACC_TERRAFORM_VERSION: 1.11.1
     steps:
       - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v3
-      
-      - name: Test
-        run: |
-          terraform version
-          which terraform
 
       - name: Start httpd
         run: make httpd-start
