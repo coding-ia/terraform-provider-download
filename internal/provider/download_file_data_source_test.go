@@ -51,10 +51,30 @@ data "download_file" "test" {
 }
 
 func TestAccDownloadDataSourceDownloadFile_EmptyUrl(t *testing.T) {
-	expectedError, _ := regexp.Compile(".*URL cannot be empty.*")
+	expectedError, _ := regexp.Compile(".*Invalid URL.*")
 	config := `
 data "download_file" "test" {
   url           = ""
+  output_file   = ""
+}
+`
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() {},
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: expectedError,
+			},
+		},
+	})
+}
+
+func TestAccDownloadDataSourceDownloadFile_MalformedUrl(t *testing.T) {
+	expectedError, _ := regexp.Compile(".*Invalid URL.*")
+	config := `
+data "download_file" "test" {
+  url           = "htp://localhost:8080/file.dat"
   output_file   = ""
 }
 `

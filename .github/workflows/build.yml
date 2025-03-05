@@ -15,14 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up GO 1.23.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-      
       - name: Build
         run: make build
 
@@ -33,14 +25,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up GO
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
       - name: Run unit tests
         run: make test
 
@@ -50,14 +34,6 @@ jobs:
       GO111MODULE: on
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up GO 1.23.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
       - name: Start httpd
         run: make httpd-start
@@ -75,14 +51,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up GO 1.23.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
       - name: Format check
         run: make fmtcheck
 
@@ -92,14 +60,6 @@ jobs:
       GO111MODULE: on
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up GO 1.23.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
       - name: Run vet
         run: make vet

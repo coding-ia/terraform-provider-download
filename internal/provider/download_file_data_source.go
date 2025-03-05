@@ -13,8 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"io"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 )
 
 var _ datasource.DataSource = &DownloadFileDataSource{}
@@ -105,13 +108,14 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 		return
 	}
 
-	if data.Url.ValueString() == "" {
-		response.Diagnostics.AddError("Download file error", "URL cannot be empty")
+	if !isValidURL(data.Url.ValueString()) {
+		response.Diagnostics.AddError("Download file error", "Invalid URL")
 		return
 	}
 
-	downloaded := downloadFile(data.OutputFile.ValueString(), data.Url.ValueString(), response)
-	if !downloaded {
+	err := downloadFile(data.OutputFile.ValueString(), data.Url.ValueString())
+	if err != nil {
+		response.Diagnostics.AddError("Download file error", err.Error())
 		return
 	}
 
@@ -138,40 +142,41 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 	response.Diagnostics.Append(response.State.Set(ctx, &data)...)
 }
 
-func downloadFile(filepath string, url string, response *datasource.ReadResponse) bool {
+func downloadFile(filepath string, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
-		response.Diagnostics.AddError("Download file error", err.Error())
-		return false
+		return err
 	}
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			response.Diagnostics.AddError("Download file error", err.Error())
+			log.Printf("error closing response body: %s", err)
 			return
 		}
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		response.Diagnostics.AddError("Download file error", fmt.Errorf("bad status: %s", resp.Status).Error())
-		return false
+		return fmt.Errorf("bad status: %s", resp.Status)
 	}
 
 	out, err := os.Create(filepath)
 	if err != nil {
-		response.Diagnostics.AddError("Download file error", err.Error())
-		return false
+		return err
 	}
-	defer func(out *os.File) {
+	defer func() {
 		err := out.Close()
 		if err != nil {
-			response.Diagnostics.AddError("Download file error", err.Error())
+			log.Printf("error closing file output: %s", err)
 		}
-	}(out)
+	}()
 
 	_, err = io.Copy(out, resp.Body)
-	return true
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func genFileShas(filename string, data *DownloadFileDataSourceModel) error {
@@ -183,21 +188,21 @@ func genFileShas(filename string, data *DownloadFileDataSourceModel) error {
 	h := sha1.New()
 	h.Write(content)
 	sha1Hash := hex.EncodeToString(h.Sum(nil))
+	data.SHA = types.StringValue(sha1Hash)
 
 	h256 := sha256.New()
 	h256.Write(content)
 	shaSum := h256.Sum(nil)
 	sha256Hash := hex.EncodeToString(h256.Sum(nil))
 	sha256base64 := base64.StdEncoding.EncodeToString(shaSum[:])
+	data.SHA256 = types.StringValue(sha256Hash)
+	data.Base64SHA256 = types.StringValue(sha256base64)
 
 	md5Hash := md5.New()
 	md5Hash.Write(content)
 	md5Sum := hex.EncodeToString(md5Hash.Sum(nil))
-
-	data.SHA = types.StringValue(sha1Hash)
-	data.SHA256 = types.StringValue(sha256Hash)
-	data.Base64SHA256 = types.StringValue(sha256base64)
 	data.MD5 = types.StringValue(md5Sum)
+
 	data.Id = types.StringValue(sha1Hash)
 
 	return nil
@@ -223,4 +228,13 @@ func verifyFileShas(data *DownloadFileDataSourceModel) error {
 	}
 
 	return nil
+}
+
+func isValidURL(u string) bool {
+	parsedURL, err := url.Parse(u)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return false
+	}
+
+	return strings.HasPrefix(parsedURL.Scheme, "http")
 }
