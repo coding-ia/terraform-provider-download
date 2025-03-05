@@ -32,7 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
-      TF_ACC_TERRAFORM_VERSION: 1.11.1
     steps:
       - uses: actions/checkout@v4
 

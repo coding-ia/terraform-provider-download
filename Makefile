@@ -1,7 +1,7 @@
 GOFMT_FILES?=$$(find . -name '*.go')
 TEST?=$$(go list ./...)
 export GO111MODULE=on
-export TF_ACC_TERRAFORM_VERSION=0.15.4
+export TF_ACC_TERRAFORM_VERSION=1.11.1
 export TESTARGS=-race -coverprofile=coverage.txt -covermode=atomic
 
 default: build
