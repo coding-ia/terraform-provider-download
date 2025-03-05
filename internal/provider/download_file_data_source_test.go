@@ -51,7 +51,7 @@ data "download_file" "test" {
 }
 
 func TestAccDownloadDataSourceDownloadFile_EmptyUrl(t *testing.T) {
-	expectedError, _ := regexp.Compile(".*URL cannot be empty.*")
+	expectedError, _ := regexp.Compile(".*Invalid URL.*")
 	config := `
 data "download_file" "test" {
   url           = ""
