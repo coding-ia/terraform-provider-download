@@ -36,8 +36,18 @@ jobs:
       GO111MODULE: on
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Test
+        run: |
+          terraform version
+          which terraform
 
       - uses: hashicorp/setup-terraform@v3
+      
+      - name: Test
+        run: |
+          terraform version
+          which terraform
 
       - name: Start httpd
         run: make httpd-start
