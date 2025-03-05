@@ -50,6 +50,16 @@ func (d *DownloadFileFunction) Run(ctx context.Context, request function.RunRequ
 
 	response.Error = function.ConcatFuncErrors(response.Error, request.Arguments.Get(ctx, &url, &filename))
 
+	if !isValidURL(url) {
+		response.Error = function.NewFuncError("invalid url")
+		return
+	}
+
+	if filename == "" {
+		response.Error = function.NewFuncError("filename is empty")
+		return
+	}
+
 	info, _ := os.Stat(filename)
 	if info != nil {
 		_, contentLength, err := getRemoteFileMetadata(url)

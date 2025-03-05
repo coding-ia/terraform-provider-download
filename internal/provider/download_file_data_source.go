@@ -15,7 +15,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 )
 
 var _ datasource.DataSource = &DownloadFileDataSource{}
@@ -106,8 +108,8 @@ func (f *DownloadFileDataSource) Read(ctx context.Context, request datasource.Re
 		return
 	}
 
-	if data.Url.ValueString() == "" {
-		response.Diagnostics.AddError("Download file error", "URL cannot be empty")
+	if !isValidURL(data.Url.ValueString()) {
+		response.Diagnostics.AddError("Download file error", "Invalid URL")
 		return
 	}
 
@@ -226,4 +228,13 @@ func verifyFileShas(data *DownloadFileDataSourceModel) error {
 	}
 
 	return nil
+}
+
+func isValidURL(u string) bool {
+	parsedURL, err := url.Parse(u)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return false
+	}
+
+	return strings.HasPrefix(parsedURL.Scheme, "http")
 }

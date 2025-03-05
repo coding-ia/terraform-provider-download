@@ -70,6 +70,26 @@ data "download_file" "test" {
 	})
 }
 
+func TestAccDownloadDataSourceDownloadFile_MalformedUrl(t *testing.T) {
+	expectedError, _ := regexp.Compile(".*Invalid URL.*")
+	config := `
+data "download_file" "test" {
+  url           = "htp://localhost:8080/file.dat"
+  output_file   = ""
+}
+`
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() {},
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: expectedError,
+			},
+		},
+	})
+}
+
 func TestAccDownloadDataSourceDownloadFile_Verify(t *testing.T) {
 	config := `
 data "download_file" "test" {
